@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { width: 90%; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .header { font-size: 24px; font-weight: bold; color: #004a99; margin-bottom: 20px; }
+        .field-label { font-weight: bold; }
+        .field-value { margin-left: 10px; }
+        .line-item-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .line-item-table th, .line-item-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .line-item-table th { background-color: #f2f2f2; }
+        .footer { margin-top: 20px; font-size: 12px; color: #777; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">New QC Slip for Review</div>
+        <p>A new Quality Control slip has been submitted by <b>{{ slip.created_by_name }}</b> and requires your attention.</p>
+        
+        <div><span class="field-label">QC Slip ID:</span><span class="field-value">{{ slip.slip_id }}</span></div>
+        <div><span class="field-label">Sales Order:</span><span class="field-value">{{ slip.order_number }}</span></div>
+        <div><span class="field-label">Production Manager:</span><span class="field-value">{{ slip.production_manager_email }}</span></div>
+        
+        <h4 style="margin-top: 30px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Actioned Line Items</h4>
+        <table class="line-item-table">
+            <thead>
+                <tr>
+                    <th>Line #</th>
+                    <th>Description</th>
+                    <th>Action Qty</th>
+                    <th>Comment</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for line in slip.actioned_lines %}
+                <tr>
+                    <td>{{ line.lineNumber }}</td>
+                    <td>{{ line.partDescription }}</td>
+                    <td>{{ line.actionQty or 'N/A' }}</td>
+                    <td>{{ line.comment or 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <p class="footer">Please review the full details in the Business Process Hub.</p>
+    </div>
+</body>
+</html>

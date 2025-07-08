@@ -1,0 +1,234 @@
+{% extends "_layout.html" %}
+
+{% block title %}New QC Slip{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* A4 Page Simulation Styles */
+    .page-container {
+        background-color: #ffffff;
+        width: 210mm;
+        min-height: 297mm;
+        margin: 2rem auto;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        position: relative;
+        padding-top: 155px;
+        padding-bottom: 100px;
+        padding-left: 40px;
+        padding-right: 40px;
+        box-sizing: border-box;
+    }
+    .page-header {
+        background: url("{{ url_for('static', filename='images/SharedServiceshead.png') }}") no-repeat center center;
+        background-size: cover;
+        height: 155px;
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+    .page-footer {
+        background: url("{{ url_for('static', filename='images/SharedServicesFooter.png') }}") no-repeat center center;
+        background-size: cover;
+        height: 100px;
+        width: 100%;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+    }
+    main {
+        background-color: #e9ebee;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header"></div>
+
+    <h3 class="text-2xl font-bold mb-6 text-gray-800">QC Slip</h3>
+    
+    <form method="POST" action="{{ url_for('qc.new_qc_slip') }}" id="qc-form" enctype="multipart/form-data">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            
+            <div>
+                <label for="userName" class="block text-sm font-medium text-gray-700">UserName</label>
+                <input type="text" name="userName" id="userName" value="{{ current_user.name }}" readonly class="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm sm:text-sm cursor-not-allowed">
+            </div>
+
+            <div>
+                <label for="qc_type" class="block text-sm font-medium text-gray-700">QC Type <span class="text-red-500">*</span></label>
+                <select name="qc_type" id="qc_type" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                    <option value="" disabled selected>Select QC Type</option>
+                    <option value="Production">Production</option>
+                    <option value="Industrial">Industrial</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="production_manager_email" class="block text-sm font-medium text-gray-700">Production Manager Email <span class="text-red-500">*</span></label>
+                <select name="production_manager_email" id="production_manager_email" class="mt-1 block w-full" style="width: 100%;" required>
+                </select>
+            </div>
+
+            <div>
+                <label for="dispatch_manager_email" class="block text-sm font-medium text-gray-700">Dispatch Manager Email <span class="text-red-500">*</span></label>
+                <input type="email" name="dispatch_manager_email" id="dispatch_manager_email" value="dispatch.support@hcaircon.com" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+            </div>
+
+            <div class="md:col-span-2">
+                <label for="order_number" class="block text-sm font-medium text-gray-700">Select an Order <span class="text-red-500">*</span></label>
+                <select name="order_number" id="order_number" class="mt-1 block w-full" style="width: 100%;" required></select>
+            </div>
+
+            <div class="md:col-span-2">
+                <label for="coa_number" class="block text-sm font-medium text-gray-700">COA Number</label>
+                <input type="text" name="coa_number" id="coa_number" readonly class="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm sm:text-sm cursor-not-allowed">
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <h4 class="text-lg font-semibold text-gray-800">Line Items</h4>
+            <div id="line-items-container" class="mt-4 border rounded-lg overflow-hidden hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">Action</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Line #</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Part Description</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order Qty</th>
+                        </tr>
+                    </thead>
+                    <tbody id="line-items-table-body" class="bg-white divide-y divide-gray-200"></tbody>
+                </table>
+            </div>
+            <div id="line-items-placeholder" class="mt-4 text-center text-gray-500 py-8 border-2 border-dashed rounded-lg">
+                <p>Select an order to view its line items.</p>
+            </div>
+        </div>
+
+        <div id="line-item-details-section" class="mt-8 space-y-6"></div>
+
+        <div class="mt-8 pt-5 border-t">
+            <div class="flex justify-end">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
+                    Submit QC Slip
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <div class="page-footer"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        const orderSelect = $('#order_number');
+        const coaNumberInput = $('#coa_number');
+        const lineItemsContainer = $('#line-items-container');
+        const lineItemsPlaceholder = $('#line-items-placeholder');
+        const lineItemsTableBody = $('#line-items-table-body');
+        const lineItemDetailsSection = $('#line-item-details-section');
+
+        orderSelect.select2({
+            placeholder: 'Type to search for an order...',
+            minimumInputLength: 2,
+            ajax: {
+                url: "{{ url_for('api.search_orders') }}",
+                dataType: 'json',
+                delay: 250,
+                data: (params) => ({ q: params.term }),
+                processResults: (data) => ({ results: data.results }),
+                cache: true
+            }
+        });
+
+        $('#production_manager_email').select2({
+            placeholder: 'Select a Production Manager',
+            ajax: {
+                url: "{{ url_for('api.search_users') }}",
+                dataType: 'json',
+                delay: 250,
+                data: (params) => ({ 
+                    q: params.term, 
+                    list: 'production_managers' 
+                }),
+                processResults: (data) => ({ results: data.results }),
+                cache: true
+            }
+        });
+
+       orderSelect.on('select2:select', function (e) {
+    const orderId = e.params.data.id;
+    coaNumberInput.val(orderId);
+    if (!orderId) return;
+
+    lineItemsPlaceholder.addClass('hidden');
+    lineItemsTableBody.html('<tr><td colspan="4" class="text-center p-4">Loading line items...</td></tr>');
+    lineItemsContainer.removeClass('hidden');
+    lineItemDetailsSection.empty();
+
+    $.ajax({
+        url: "{{ url_for('api.get_order_details', orderId='__ORDER_ID__') }}".replace('__ORDER_ID__', orderId),
+        type: 'GET',
+        success: function(lines) {
+            lineItemsTableBody.empty();
+            if (lines.length === 0) {
+                lineItemsTableBody.html('<tr><td colspan="4" class="text-center p-4">No line items found for this order.</td></tr>');
+                return;
+            }
+            lines.forEach(line => {
+                // CORRECTED: Using lowercase property names to match API response
+                const row = `
+                    <tr>
+                        <td class="px-4 py-2"><input type="checkbox" name="line_checkbox_${line.lineNumber}" data-line-number="${line.lineNumber}" class="line-item-checkbox h-4 w-4 text-indigo-600 border-gray-300 rounded"></td>
+                        <td class="px-4 py-2">${line.lineNumber}</td>
+                        <td class="px-4 py-2">${line.partDescription}</td>
+                        <td class="px-4 py-2">${line.orderQty}</td>
+                    </tr>
+                    <input type="hidden" name="partId_${line.lineNumber}" value="${line.partId}">
+                    <input type="hidden" name="partDescription_${line.lineNumber}" value="${line.partDescription}">
+                    <input type="hidden" name="miscReference_${line.lineNumber}" value="${line.miscReference || ''}">
+                    <input type="hidden" name="orderQty_${line.lineNumber}" value="${line.orderQty}">
+                `;
+                lineItemsTableBody.append(row);
+            });
+        },
+        error: function() {
+            lineItemsTableBody.html('<tr><td colspan="4" class="text-center p-4 text-red-500">Failed to load line items.</td></tr>');
+        }
+    });
+});
+        $(document).on('change', '.line-item-checkbox', function() {
+    const lineNumber = $(this).data('line-number');
+    const detailCardId = `detail-card-${lineNumber}`;
+            if (this.checked) {
+                const detailCard = `
+                    <div id="${detailCardId}" class="p-4 border rounded-md bg-gray-50">
+                        <h5 class="font-bold">Details for Line #${lineNumber}</h5>
+                        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="actionQty_${lineNumber}" class="block text-sm font-medium text-gray-700">Quantity to Action</label>
+                                <input type="number" name="actionQty_${lineNumber}" id="actionQty_${lineNumber}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="comment_${lineNumber}" class="block text-sm font-medium text-gray-700">Comment</label>
+                                <input type="text" name="comment_${lineNumber}" id="comment_${lineNumber}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="photos_${lineNumber}" class="block text-sm font-medium text-gray-700">Upload Photos</label>
+                                <input type="file" name="photos_${lineNumber}" id="photos_${lineNumber}" multiple class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            </div>
+                        </div>
+                    </div>
+                `;
+                lineItemDetailsSection.append(detailCard);
+            } else {
+                $(`#${detailCardId}`).remove();
+            }
+        });
+    });
+</script>
+{% endblock %}

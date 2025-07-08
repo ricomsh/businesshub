@@ -1,0 +1,39 @@
+{% extends "_layout.html" %}
+
+{% block title %}View QC Slips{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow">
+    <h3 class="text-2xl font-bold mb-4">View All QC Slips</h3>
+    
+    <!-- This table will display the QC slips -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slip ID</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created By</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order #</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% if slips %}
+                    {% for slip in slips %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ slip.slip_id }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ slip.created_by }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ slip.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ slip.order_number }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 text-center text-gray-500">No QC slips have been submitted yet.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

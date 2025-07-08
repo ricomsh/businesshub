@@ -1,0 +1,48 @@
+{% extends "_layout.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow">
+    <h3 class="text-2xl font-bold mb-4">Admin Settings</h3>
+    <p class="text-gray-600">Welcome to the Admin Dashboard. From here, you can manage users and application data.</p>
+</div>
+
+<!-- NEW: Email Testing Mode Toggle -->
+<div class="mt-8 bg-white p-6 rounded-lg shadow">
+    <h4 class="text-xl font-bold text-gray-800 mb-2">Email Testing Mode</h4>
+    <div class="flex items-center justify-between">
+        <div>
+            <p class="text-gray-600">When enabled, all system emails will be sent only to the test address (<strong class="font-mono">eric.mashau@hcaircon.com</strong>).</p>
+            <p class="mt-1">Current Status: 
+                {% if email_testing_status %}
+                    <span class="font-bold text-green-600">ON (Testing)</span>
+                {% else %}
+                    <span class="font-bold text-red-600">OFF (Live)</span>
+                {% endif %}
+            </p>
+        </div>
+        <form method="POST" action="{{ url_for('admin.toggle_email_testing') }}">
+            {% if email_testing_status %}
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">
+                    Turn OFF Testing Mode
+                </button>
+            {% else %}
+                 <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">
+                    Turn ON Testing Mode
+                </button>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Section for flagged orders -->
+<div class="mt-8 bg-white p-6 rounded-lg shadow">
+    <h4 class="text-xl font-bold text-yellow-600 mb-4">Orders Pending Dispatch Review</h4>
+    {% if flagged_orders %}
+        <!-- ... table code remains the same ... -->
+    {% else %}
+        <p class="text-gray-500">There are no orders pending review.</p>
+    {% endif %}
+</div>
+{% endblock %}

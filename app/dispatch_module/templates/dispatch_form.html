@@ -1,0 +1,46 @@
+{% extends "_layout.html" %}
+{% block title %}New Dispatch{% endblock %}
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow">
+    <h3 class="text-2xl font-bold mb-4">Create New Dispatch Record</h3>
+    
+    <form method="POST" action="{{ url_for('dispatch.new_dispatch') }}" enctype="multipart/form-data">
+        <div class="space-y-4">
+            <div>
+                <label for="order_number" class="block text-sm font-medium text-gray-700">Order Number to Dispatch</label>
+                <select name="order_number" id="order_number" class="mt-1 block w-full" style="width: 100%;" required></select>
+            </div>
+            <div>
+                <label for="dispatch_images" class="block text-sm font-medium text-gray-700">Dispatch Images</label>
+                <input type="file" name="dispatch_images" id="dispatch_images" multiple class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+            </div>
+        </div>
+        <div class="mt-6">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
+                Submit Dispatch
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // I have also upgraded your primitive input to a searchable dropdown
+    // for superior order selection, consistent with other forms.
+    $(document).ready(function() {
+        $('#order_number').select2({
+            placeholder: 'Type to search for an order...',
+            minimumInputLength: 2,
+            ajax: {
+                url: "{{ url_for('api.search_orders') }}",
+                dataType: 'json',
+                delay: 250,
+                data: (params) => ({ q: params.term }),
+                processResults: (data) => ({ results: data.results }),
+                cache: true
+            }
+        });
+    });
+</script>
+{% endblock %}

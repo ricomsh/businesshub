@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Business Process Hub{% endblock %}</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/HC Logo_no_background-01.png') }}" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    {% block head_extra %}{% endblock %}
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-gray-800 text-white p-5 flex flex-col">
+            <div class="text-center mb-10">
+                <img src="{{ url_for('static', filename='images/HC Logo_no_background-01.png') }}" alt="Company Logo" class="mx-auto h-20 w-auto mb-4">
+                <h1 class="text-xl font-bold">Process Hub</h1>
+            </div>
+            <nav class="flex-grow">
+                <ul>
+                    <li><a href="{{ url_for('main.dashboard') }}" class="block py-2.5 px-4 rounded hover:bg-gray-700">Dashboard</a></li>
+                    
+                    <li class="mt-4"><span class="px-4 text-xs text-gray-400 font-bold uppercase">Quality Control</span></li>
+                    {% if current_user.has_role('admin') or current_user.has_role('qc') %}
+                        <li><a href="{{ url_for('qc.new_qc_slip') }}" class="block py-2.5 px-4 rounded hover:bg-gray-700">New QC Slip</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('qc.view_qc_slips') }}" class="block py-2.5 px-4 rounded hover:bg-gray-700">View QC Slips</a></li>
+
+                    <li class="mt-4"><span class="px-4 text-xs text-gray-400 font-bold uppercase">Incidents</span></li>
+                    {% if current_user.has_role('admin') or current_user.has_role('qc') or current_user.has_role('ir') %}
+                        <li><a href="{{ url_for('ir.new_ir_slip') }}" class="block py-2.5 px-4 rounded hover:bg-gray-700">New Incident Report</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('ir.view_ir_slips') }}" class="block py-2.5 px-4 rounded hover:bg-gray-700">View Incident Reports</a></li>
+
+                    <li class="mt-4"><span class="px-4 text-xs text-gray-400 font-bold uppercase">Complaints</span></li>
+                    {% if current_user.has_role('admin') or current_user.has_role('sales') %}
+                        <li><a href="{{ url_for('cc.new_cc_slip') }}" class="block py-2.5 px-4 rounded hover:bg-gray-700">New Customer Complaint</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('cc.view_cc_slips') }}" class="block py-2.5 px-4 rounded hover:bg-gray-700">View Customer Complaints</a></li>
+
+                    <li class="mt-4"><span class="px-4 text-xs text-gray-400 font-bold uppercase">Dispatch</span></li>
+                    {% if current_user.has_role('admin') or current_user.has_role('dispatch') %}
+                        <li><a href="{{ url_for('dispatch.new_dispatch') }}" class="block py-2.5 px-4 rounded hover:bg-gray-700">New Dispatch</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('dispatch.view_dispatches') }}" class="block py-2.5 px-4 rounded hover:bg-gray-700">View Dispatches</a></li>
+
+                </ul>
+            </nav>
+            <div class="mt-4 pt-4 border-t border-gray-700">
+                <ul>
+                     {% if current_user.has_role('admin') %}
+                        <li><a href="{{ url_for('admin.dashboard') }}" class="block py-2.5 px-4 rounded hover:bg-gray-700">Admin Settings</a></li>
+                    {% endif %}
+                    {% if current_user.is_authenticated %}
+                        <li><a href="{{ url_for('auth.logout') }}" class="block py-2.5 px-4 rounded hover:bg-gray-700">Logout</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <header class="bg-white shadow p-4">
+                <h2 class="text-xl font-semibold">Welcome, {{ current_user.name if current_user.is_authenticated else 'Guest' }}!</h2>
+            </header>
+            <main class="flex-1 p-6 overflow-y-auto">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="p-4 mb-4 text-sm text-white rounded-lg 
+                                {% if category == 'success' %} bg-green-500 
+                                {% elif category == 'warning' %} bg-yellow-500 
+                                {% else %} bg-red-500 
+                                {% endif %}" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
